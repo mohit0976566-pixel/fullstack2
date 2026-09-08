@@ -84,6 +84,7 @@ export default function App() {
   const selectedPost = editingPost || posts[0];
 
   const PostCardToUse = memoOn ? PostCardMemo : PostCard;
+  const optimizationsOn = memoOn && useMemoOn && useCallbackOn;
 
   const resetCounts = () => {
     countsRef.current = { App: 0, Calendar: 0, PostCard: 0 };
@@ -135,6 +136,14 @@ export default function App() {
     setter((v) => !v);
   };
 
+  const toggleAllOptimizations = () => {
+    const nextValue = !optimizationsOn;
+    setCounts({ ...countsRef.current });
+    setMemoOn(nextValue);
+    setUseMemoOn(nextValue);
+    setUseCallbackOn(nextValue);
+  };
+
   return (
     <div className="app-shell">
       <div className="topbar" style={topbarStyle}>
@@ -142,6 +151,16 @@ export default function App() {
           <strong>Interactive Post Scheduler</strong>
           <RenderCounter name="App" onCount={handleCounts} color="#7c3aed" />
         </div>
+        <button
+          type="button"
+          data-testid="optimizations-toggle"
+          onClick={toggleAllOptimizations}
+          className="toggle-btn"
+          style={toggleBtn(optimizationsOn)}
+          title="Turn all rendering optimizations on or off"
+        >
+          Optimizations: {optimizationsOn ? 'ON' : 'OFF'}
+        </button>
         <button
           type="button"
           data-testid="memo-toggle"
