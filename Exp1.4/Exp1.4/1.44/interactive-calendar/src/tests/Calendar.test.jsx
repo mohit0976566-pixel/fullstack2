@@ -146,4 +146,36 @@ describe('Interactive Calendar', () => {
     expect(p1.date).toBe(ymd);
     expect(p1.date).not.toBe(originalDate);
   });
+
+  it('10. Reset clears counts and dragover does not count as a render', () => {
+    const { store } = renderApp();
+    const today = new Date();
+    const target = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 10);
+    const ymd = `${target.getFullYear()}-${String(target.getMonth() + 1).padStart(2, '0')}-${String(target.getDate()).padStart(2, '0')}`;
+    const targetCell = screen.getByTestId(`day-cell-${ymd}`);
+    const post = screen.getByTestId('draggable-post-p1');
+
+    fireEvent.click(screen.getByTestId('reset-counts'));
+    expect(screen.getByTestId('render-count-app')).toHaveTextContent('0');
+    expect(screen.getByTestId('render-count-calendar')).toHaveTextContent('0');
+    expect(screen.getByTestId('render-count-postcard')).toHaveTextContent('0');
+
+    fireEvent.dragOver(targetCell);
+    expect(screen.getByTestId('render-count-app')).toHaveTextContent('0');
+    expect(screen.getByTestId('render-count-calendar')).toHaveTextContent('0');
+
+    const dataTransfer = {
+      data: {},
+      setData(type, value) { this.data[type] = value; },
+      getData(type) { return this.data[type] || ''; },
+      effectAllowed: '',
+      dropEffect: '',
+    };
+    fireEvent.dragStart(post, { dataTransfer });
+    fireEvent.drop(targetCell, { dataTransfer });
+
+    expect(Number(screen.getByTestId('render-count-app').textContent)).toBeGreaterThan(0);
+    expect(Number(screen.getByTestId('render-count-calendar').textContent)).toBeGreaterThan(0);
+    expect(store.getState().posts.posts.find((item) => item.id === 'p1').date).toBe(ymd);
+  });
 });

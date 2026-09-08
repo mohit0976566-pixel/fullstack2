@@ -27,6 +27,7 @@ export default function App() {
   const [useMemoOn, setUseMemoOn] = useState(true);
   const [useCallbackOn, setUseCallbackOn] = useState(true);
   const [editingPost, setEditingPost] = useState(null);
+  const [resetToken, setResetToken] = useState(0);
 
   const posts = useSelector((state) => state.posts.posts);
   const dispatch = useDispatch();
@@ -47,15 +48,20 @@ export default function App() {
   const handleEditStable = useCallback((post) => setEditingPost(post), []);
   const handleDeleteStable = useCallback((id) => dispatch(deletePost(id)), [dispatch]);
   const handlePostDropStable = useCallback(
-    (id, newDate) => dispatch(reschedulePost({ id, date: newDate })),
+    (id, newDate) => {
+      dispatch(reschedulePost({ id, date: newDate }));
+      setCounts({ ...countsRef.current });
+    },
     [dispatch],
   );
   const handlePostClickStable = useCallback((post) => setEditingPost(post), []);
 
   const handleEditPlain = (post) => setEditingPost(post);
   const handleDeletePlain = (id) => dispatch(deletePost(id));
-  const handlePostDropPlain = (id, newDate) =>
+  const handlePostDropPlain = (id, newDate) => {
     dispatch(reschedulePost({ id, date: newDate }));
+    setCounts({ ...countsRef.current });
+  };
   const handlePostClickPlain = (post) => setEditingPost(post);
 
   const handleEdit = useCallbackOn ? handleEditStable : handleEditPlain;
@@ -78,6 +84,12 @@ export default function App() {
   const selectedPost = editingPost || posts[0];
 
   const PostCardToUse = memoOn ? PostCardMemo : PostCard;
+
+  const resetCounts = () => {
+    countsRef.current = { App: 0, Calendar: 0, PostCard: 0 };
+    setCounts({ App: 0, Calendar: 0, PostCard: 0 });
+    setResetToken((value) => value + 1);
+  };
 
   const topbarStyle = {
     display: 'flex',
@@ -189,6 +201,8 @@ export default function App() {
                 status={selectedPost.status}
                 priority={selectedPost.priority}
                 author={selectedPost.author}
+                onRender={handleCounts}
+                resetToken={resetToken}
               />
             ) : (
               <div style={{ color: '#9ca3af', fontSize: '13px', marginTop: '6px' }}>
@@ -204,6 +218,7 @@ export default function App() {
             useMemoOn={useMemoOn}
             useCallbackOn={useCallbackOn}
             counts={counts}
+            onResetCounts={resetCounts}
           />
 
           <div className="posts-panel" style={{ marginTop: '10px', background: '#fff', padding: '10px', border: '1px solid #e5e7eb', borderRadius: '6px' }}>

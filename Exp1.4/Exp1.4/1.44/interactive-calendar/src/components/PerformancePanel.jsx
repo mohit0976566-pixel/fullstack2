@@ -1,5 +1,5 @@
 // PerformancePanel — shows per-hook status and live render counts.
-export default function PerformancePanel({ memoOn, useMemoOn, useCallbackOn, counts }) {
+export default function PerformancePanel({ memoOn, useMemoOn, useCallbackOn, counts, onResetCounts }) {
   const rowStyle = {
     display: 'flex',
     justifyContent: 'space-between',
@@ -46,7 +46,17 @@ export default function PerformancePanel({ memoOn, useMemoOn, useCallbackOn, cou
       </div>
 
       <div style={sectionStyle}>
-        <div style={sectionTitle}>Render Counts</div>
+        <div style={{ ...sectionTitle, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span>Render Counts</span>
+          <button
+            type="button"
+            data-testid="reset-counts"
+            onClick={onResetCounts}
+            style={{ padding: '2px 6px', fontSize: '11px', cursor: 'pointer' }}
+          >
+            Reset
+          </button>
+        </div>
         <div style={rowStyle}>
           <span style={labelStyle}>App</span>
           <span data-testid="render-count-app">{counts.App || 0}</span>
