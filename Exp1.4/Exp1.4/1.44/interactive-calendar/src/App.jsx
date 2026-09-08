@@ -36,11 +36,19 @@ export default function App() {
   // re-render and risk feedback loops. We mirror the values into state only
   // when one of the toggles flips, which is exactly when we want to display
   // the new numbers anyway.
-  const countsRef = useRef({ App: 0, Calendar: 0, PostCard: 0 });
+  const countsRef = useRef({ App: 0, Calendar: 0, PostCard: 0, DayCell: 0 });
+  const dayCellRenderRef = useRef(resetToken);
   countsRef.current.App += 1;
 
   const handleCounts = useCallback((name, value) => {
     countsRef.current[name] = value;
+  }, []);
+  const handleDayCellRender = useCallback((token) => {
+    if (dayCellRenderRef.current !== token) {
+      dayCellRenderRef.current = token;
+      countsRef.current.DayCell = 0;
+    }
+    countsRef.current.DayCell += 1;
   }, []);
 
   // Stable handlers when useCallback is ON; recreated every render when OFF.
@@ -73,7 +81,7 @@ export default function App() {
   const optimizationsOn = memoOn && useMemoOn && useCallbackOn;
 
   const resetCounts = () => {
-    countsRef.current = { App: 0, Calendar: 0, PostCard: 0 };
+    countsRef.current = { App: 0, Calendar: 0, PostCard: 0, DayCell: 0 };
     setResetToken((value) => value + 1);
   };
 
@@ -189,7 +197,9 @@ export default function App() {
             onCountsChange={handleCounts}
             useMemoOn={useMemoOn}
             useCallbackOn={useCallbackOn}
+            memoOn={memoOn}
             resetToken={resetToken}
+            onDayCellRender={handleDayCellRender}
           />
 
           <div className="selected-panel" style={bottomStyle} data-testid="selected-post-panel">

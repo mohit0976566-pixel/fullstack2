@@ -69,6 +69,10 @@ export default function PerformancePanel({ memoOn, useMemoOn, useCallbackOn, cou
           <span style={labelStyle}>PostCard</span>
           <span data-testid="render-count-postcard">{counts.PostCard || 0}</span>
         </div>
+        <div style={rowStyle}>
+          <span style={labelStyle}>Day cells</span>
+          <span data-testid="render-count-daycell">{counts.DayCell || 0}</span>
+        </div>
       </div>
     </div>
   );

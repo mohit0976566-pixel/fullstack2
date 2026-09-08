@@ -204,6 +204,7 @@ describe('Interactive Calendar', () => {
   it('12. Optimizations reduce PostCard renders during an unrelated drag', () => {
     const { store } = renderApp();
     const today = new Date();
+    const currentMonthDays = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
     const optimizedTarget = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 10);
     const optimizedDate = `${optimizedTarget.getFullYear()}-${String(optimizedTarget.getMonth() + 1).padStart(2, '0')}-${String(optimizedTarget.getDate()).padStart(2, '0')}`;
     const optimizedCell = screen.getByTestId(`day-cell-${optimizedDate}`);
@@ -221,6 +222,8 @@ describe('Interactive Calendar', () => {
     };
 
     fireEvent.click(screen.getByTestId('reset-counts'));
+    const optimizedBaseline = Number(screen.getByTestId('render-count-daycell').textContent);
+    expect(optimizedBaseline).toBe(currentMonthDays);
     fireEvent.dragOver(optimizedCell);
     fireEvent.dragOver(optimizedCell);
     expect(screen.getByTestId('render-count-app')).toHaveTextContent('0');
@@ -229,10 +232,13 @@ describe('Interactive Calendar', () => {
     drag(optimizedCell);
     expect(screen.getByTestId('render-count-app')).toHaveTextContent('1');
     expect(screen.getByTestId('render-count-calendar')).toHaveTextContent('1');
+    expect(Number(screen.getByTestId('render-count-daycell').textContent)).toBe(optimizedBaseline + 2);
     expect(screen.getByTestId('render-count-postcard')).toHaveTextContent('0');
 
     fireEvent.click(screen.getByTestId('optimizations-toggle'));
     fireEvent.click(screen.getByTestId('reset-counts'));
+    const unoptimizedBaseline = Number(screen.getByTestId('render-count-daycell').textContent);
+    expect(unoptimizedBaseline).toBe(currentMonthDays);
     const unoptimizedTarget = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 11);
     const unoptimizedDate = `${unoptimizedTarget.getFullYear()}-${String(unoptimizedTarget.getMonth() + 1).padStart(2, '0')}-${String(unoptimizedTarget.getDate()).padStart(2, '0')}`;
     const unoptimizedCell = screen.getByTestId(`day-cell-${unoptimizedDate}`);
@@ -244,6 +250,7 @@ describe('Interactive Calendar', () => {
 
     expect(screen.getByTestId('render-count-app')).toHaveTextContent('1');
     expect(screen.getByTestId('render-count-calendar')).toHaveTextContent('1');
+    expect(Number(screen.getByTestId('render-count-daycell').textContent)).toBe(unoptimizedBaseline + currentMonthDays);
     expect(screen.getByTestId('render-count-postcard')).toHaveTextContent('1');
     expect(store.getState().posts.posts.find((item) => item.id === 'p2').date).toBe(unoptimizedDate);
   });

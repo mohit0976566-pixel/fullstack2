@@ -7,7 +7,7 @@
 // of Hooks we always call useMemo/useCallback with stable deps; the toggle
 // just decides whether the *result* is used or recomputed.
 
-import { useMemo, useCallback, useState } from 'react';
+import { useMemo, useCallback, useState, useRef, memo } from 'react';
 import RenderCounter from './RenderCounter';
 
 function statusColor(status) {
@@ -38,6 +38,67 @@ function buildMonthGrid(viewDate) {
 }
 
 const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const EMPTY_POSTS = [];
+
+function DayCell({ dateStr, dayNumber, inMonth, isToday, dayPosts, onPostDrop, onPostClick, handleDragStart, onRender, resetToken }) {
+  if (inMonth && onRender) onRender(resetToken, dateStr);
+
+  const dayCellStyle = {
+    minHeight: '70px',
+    background: isToday ? '#fef3c7' : '#fff',
+    border: '1px solid ' + (inMonth ? '#e5e7eb' : '#f3f4f6'),
+    borderRadius: '4px',
+    padding: '4px',
+    fontSize: '11px',
+    color: inMonth ? '#111' : '#9ca3af',
+    overflow: 'hidden',
+  };
+  const chipStyle = (status) => ({
+    background: statusColor(status),
+    color: '#fff',
+    padding: '2px 4px',
+    marginBottom: '2px',
+    borderRadius: '3px',
+    fontSize: '10px',
+    cursor: 'grab',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+    userSelect: 'none',
+  });
+
+  const handleDrop = (event) => {
+    event.preventDefault();
+    const id = event.dataTransfer.getData('text/plain');
+    if (id && onPostDrop) onPostDrop(id, dateStr);
+  };
+
+  return (
+    <div
+      style={dayCellStyle}
+      data-testid={`day-cell-${dateStr}`}
+      onDragOver={(event) => event.preventDefault()}
+      onDrop={handleDrop}
+    >
+      <div style={{ fontSize: '11px', fontWeight: 600, marginBottom: '2px' }}>{dayNumber}</div>
+      {dayPosts.map((post) => (
+        <div
+          key={post.id}
+          style={chipStyle(post.status)}
+          draggable
+          onDragStart={handleDragStart(post.id)}
+          onClick={onPostClick ? () => onPostClick(post) : undefined}
+          data-testid={`draggable-post-${post.id}`}
+          title={`${post.title} — ${post.platform}`}
+        >
+          {post.title}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+const DayCellMemo = memo(DayCell);
 
 export default function Calendar({
   posts,
@@ -46,14 +107,26 @@ export default function Calendar({
   onCountsChange,
   useMemoOn,
   useCallbackOn,
+  memoOn,
   resetToken,
+  onDayCellRender,
 }) {
   // useMemo — caches expensive calculation (postsByDay map)
+  const previousPostsByDay = useRef({});
   const memoedPostsByDay = useMemo(() => {
-    const map = {};
+    const nextMap = {};
     for (const p of posts) {
-      (map[p.date] = map[p.date] || []).push(p);
+      (nextMap[p.date] = nextMap[p.date] || []).push(p);
     }
+    const map = {};
+    for (const [date, dayPosts] of Object.entries(nextMap)) {
+      const previousDayPosts = previousPostsByDay.current[date];
+      const unchanged = previousDayPosts
+        && previousDayPosts.length === dayPosts.length
+        && previousDayPosts.every((post, index) => post === dayPosts[index]);
+      map[date] = unchanged ? previousDayPosts : dayPosts;
+    }
+    previousPostsByDay.current = map;
     return map;
   }, [posts]);
   const postsByDay = useMemoOn
@@ -74,38 +147,12 @@ export default function Calendar({
     },
     [],
   );
-  const memoedDrop = useCallback(
-    (date) => (e) => {
-      e.preventDefault();
-      const id = e.dataTransfer.getData('text/plain');
-      if (id && onPostDrop) onPostDrop(id, date);
-    },
-    [onPostDrop],
-  );
-  const memoedClick = useCallback(
-    (post) => () => {
-      if (onPostClick) onPostClick(post);
-    },
-    [onPostClick],
-  );
 
   const handleDragStart = useCallbackOn
     ? memoedDragStart
     : (id) => (e) => {
         e.dataTransfer.setData('text/plain', id);
         e.dataTransfer.effectAllowed = 'move';
-      };
-  const handleDrop = useCallbackOn
-    ? memoedDrop
-    : (date) => (e) => {
-        e.preventDefault();
-        const id = e.dataTransfer.getData('text/plain');
-        if (id && onPostDrop) onPostDrop(id, date);
-      };
-  const handleClick = useCallbackOn
-    ? memoedClick
-    : (post) => () => {
-        if (onPostClick) onPostClick(post);
       };
 
   const [viewDate, setViewDate] = useState(() => new Date());
@@ -135,34 +182,6 @@ export default function Calendar({
     color: '#6b7280',
     padding: '4px 0',
   };
-  const dayCellStyle = (isCurrentMonth, isToday) => ({
-    minHeight: '70px',
-    background: isToday ? '#fef3c7' : '#fff',
-    border: '1px solid ' + (isCurrentMonth ? '#e5e7eb' : '#f3f4f6'),
-    borderRadius: '4px',
-    padding: '4px',
-    fontSize: '11px',
-    color: isCurrentMonth ? '#111' : '#9ca3af',
-    overflow: 'hidden',
-  });
-  const dayNumStyle = {
-    fontSize: '11px',
-    fontWeight: 600,
-    marginBottom: '2px',
-  };
-  const chipStyle = (status) => ({
-    background: statusColor(status),
-    color: '#fff',
-    padding: '2px 4px',
-    marginBottom: '2px',
-    borderRadius: '3px',
-    fontSize: '10px',
-    cursor: 'grab',
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-    whiteSpace: 'nowrap',
-    userSelect: 'none',
-  });
   const navBtn = {
     padding: '3px 8px',
     fontSize: '12px',
@@ -205,30 +224,22 @@ export default function Calendar({
           const dateStr = ymd(d);
           const inMonth = d.getMonth() === viewDate.getMonth();
           const isToday = dateStr === todayStr;
-          const dayPosts = postsByDay[dateStr] || [];
+          const dayPosts = postsByDay[dateStr] || EMPTY_POSTS;
+          const DayCellToUse = memoOn ? DayCellMemo : DayCell;
           return (
-            <div
+            <DayCellToUse
               key={dateStr}
-              style={dayCellStyle(inMonth, isToday)}
-              data-testid={`day-cell-${dateStr}`}
-              onDragOver={(e) => e.preventDefault()}
-              onDrop={handleDrop(dateStr)}
-            >
-              <div style={dayNumStyle}>{d.getDate()}</div>
-              {dayPosts.map((p) => (
-                <div
-                  key={p.id}
-                  style={chipStyle(p.status)}
-                  draggable
-                  onDragStart={handleDragStart(p.id)}
-                  onClick={handleClick(p)}
-                  data-testid={`draggable-post-${p.id}`}
-                  title={`${p.title} — ${p.platform}`}
-                >
-                  {p.title}
-                </div>
-              ))}
-            </div>
+              dateStr={dateStr}
+              dayNumber={d.getDate()}
+              inMonth={inMonth}
+              isToday={isToday}
+              dayPosts={dayPosts}
+              onPostDrop={onPostDrop}
+              onPostClick={onPostClick}
+              handleDragStart={handleDragStart}
+              onRender={onDayCellRender}
+              resetToken={resetToken}
+            />
           );
         })}
       </div>
