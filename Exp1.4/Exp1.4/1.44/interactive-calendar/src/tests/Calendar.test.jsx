@@ -200,4 +200,37 @@ describe('Interactive Calendar', () => {
     expect(screen.getByTestId('render-count-calendar')).toHaveTextContent('1');
     expect(store.getState().posts.posts.find((item) => item.id === 'p1').date).toBe(ymd);
   });
+
+  it('12. Optimizations reduce PostCard renders during an unrelated drag', () => {
+    const { store } = renderApp();
+    const today = new Date();
+    const optimizedTarget = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 10);
+    const optimizedDate = `${optimizedTarget.getFullYear()}-${String(optimizedTarget.getMonth() + 1).padStart(2, '0')}-${String(optimizedTarget.getDate()).padStart(2, '0')}`;
+    const optimizedCell = screen.getByTestId(`day-cell-${optimizedDate}`);
+    const drag = (targetCell) => {
+      const post = screen.getByTestId('draggable-post-p2');
+      const dataTransfer = {
+        data: {},
+        setData(type, value) { this.data[type] = value; },
+        getData(type) { return this.data[type] || ''; },
+        effectAllowed: '',
+        dropEffect: '',
+      };
+      fireEvent.dragStart(post, { dataTransfer });
+      fireEvent.drop(targetCell, { dataTransfer });
+    };
+
+    fireEvent.click(screen.getByTestId('reset-counts'));
+    drag(optimizedCell);
+    expect(screen.getByTestId('render-count-postcard')).toHaveTextContent('0');
+
+    fireEvent.click(screen.getByTestId('optimizations-toggle'));
+    fireEvent.click(screen.getByTestId('reset-counts'));
+    const unoptimizedTarget = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 11);
+    const unoptimizedDate = `${unoptimizedTarget.getFullYear()}-${String(unoptimizedTarget.getMonth() + 1).padStart(2, '0')}-${String(unoptimizedTarget.getDate()).padStart(2, '0')}`;
+    drag(screen.getByTestId(`day-cell-${unoptimizedDate}`));
+
+    expect(screen.getByTestId('render-count-postcard')).toHaveTextContent('1');
+    expect(store.getState().posts.posts.find((item) => item.id === 'p2').date).toBe(unoptimizedDate);
+  });
 });
