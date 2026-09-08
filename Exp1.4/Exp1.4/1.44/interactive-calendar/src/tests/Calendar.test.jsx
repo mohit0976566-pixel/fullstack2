@@ -196,8 +196,8 @@ describe('Interactive Calendar', () => {
     fireEvent.dragStart(post, { dataTransfer });
     fireEvent.drop(targetCell, { dataTransfer });
 
-    expect(Number(screen.getByTestId('render-count-app').textContent)).toBeGreaterThan(0);
-    expect(Number(screen.getByTestId('render-count-calendar').textContent)).toBeGreaterThan(0);
+    expect(screen.getByTestId('render-count-app')).toHaveTextContent('1');
+    expect(screen.getByTestId('render-count-calendar')).toHaveTextContent('1');
     expect(store.getState().posts.posts.find((item) => item.id === 'p1').date).toBe(ymd);
   });
 });

@@ -37,7 +37,6 @@ export default function App() {
   // when one of the toggles flips, which is exactly when we want to display
   // the new numbers anyway.
   const countsRef = useRef({ App: 0, Calendar: 0, PostCard: 0 });
-  const [counts, setCounts] = useState({ App: 0, Calendar: 0, PostCard: 0 });
   countsRef.current.App += 1;
 
   const handleCounts = useCallback((name, value) => {
@@ -50,7 +49,6 @@ export default function App() {
   const handlePostDropStable = useCallback(
     (id, newDate) => {
       dispatch(reschedulePost({ id, date: newDate }));
-      setCounts({ ...countsRef.current });
     },
     [dispatch],
   );
@@ -60,7 +58,6 @@ export default function App() {
   const handleDeletePlain = (id) => dispatch(deletePost(id));
   const handlePostDropPlain = (id, newDate) => {
     dispatch(reschedulePost({ id, date: newDate }));
-    setCounts({ ...countsRef.current });
   };
   const handlePostClickPlain = (post) => setEditingPost(post);
 
@@ -68,17 +65,6 @@ export default function App() {
   const handleDelete = useCallbackOn ? handleDeleteStable : handleDeletePlain;
   const handlePostDrop = useCallbackOn ? handlePostDropStable : handlePostDropPlain;
   const handlePostClick = useCallbackOn ? handlePostClickStable : handlePostClickPlain;
-
-  // Mirror counts into state whenever any toggle flips so the panel updates.
-  const prevToggles = useRef({ memoOn, useMemoOn, useCallbackOn });
-  if (
-    prevToggles.current.memoOn !== memoOn ||
-    prevToggles.current.useMemoOn !== useMemoOn ||
-    prevToggles.current.useCallbackOn !== useCallbackOn
-  ) {
-    prevToggles.current = { memoOn, useMemoOn, useCallbackOn };
-    setCounts({ ...countsRef.current });
-  }
 
   // Selected post for the bottom detail panel — first one if none highlighted
   const selectedPost = editingPost || posts[0];
@@ -88,7 +74,6 @@ export default function App() {
 
   const resetCounts = () => {
     countsRef.current = { App: 0, Calendar: 0, PostCard: 0 };
-    setCounts({ App: 0, Calendar: 0, PostCard: 0 });
     setResetToken((value) => value + 1);
   };
 
@@ -132,13 +117,11 @@ export default function App() {
 
   // Wrap a setter so the panel's numbers visibly jump right after the flip.
   const flip = (setter) => {
-    setCounts({ ...countsRef.current });
     setter((v) => !v);
   };
 
   const toggleAllOptimizations = () => {
     const nextValue = !optimizationsOn;
-    setCounts({ ...countsRef.current });
     setMemoOn(nextValue);
     setUseMemoOn(nextValue);
     setUseCallbackOn(nextValue);
@@ -149,7 +132,7 @@ export default function App() {
       <div className="topbar" style={topbarStyle}>
         <div style={titleRowStyle}>
           <strong>Interactive Post Scheduler</strong>
-          <RenderCounter name="App" onCount={handleCounts} color="#7c3aed" />
+          <RenderCounter name="App" onCount={handleCounts} color="#7c3aed" resetToken={resetToken} />
         </div>
         <button
           type="button"
@@ -206,6 +189,7 @@ export default function App() {
             onCountsChange={handleCounts}
             useMemoOn={useMemoOn}
             useCallbackOn={useCallbackOn}
+            resetToken={resetToken}
           />
 
           <div className="selected-panel" style={bottomStyle} data-testid="selected-post-panel">
@@ -236,7 +220,7 @@ export default function App() {
             memoOn={memoOn}
             useMemoOn={useMemoOn}
             useCallbackOn={useCallbackOn}
-            counts={counts}
+            counts={countsRef.current}
             onResetCounts={resetCounts}
           />
 
