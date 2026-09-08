@@ -221,15 +221,29 @@ describe('Interactive Calendar', () => {
     };
 
     fireEvent.click(screen.getByTestId('reset-counts'));
+    fireEvent.dragOver(optimizedCell);
+    fireEvent.dragOver(optimizedCell);
+    expect(screen.getByTestId('render-count-app')).toHaveTextContent('0');
+    expect(screen.getByTestId('render-count-calendar')).toHaveTextContent('0');
+    expect(screen.getByTestId('render-count-postcard')).toHaveTextContent('0');
     drag(optimizedCell);
+    expect(screen.getByTestId('render-count-app')).toHaveTextContent('1');
+    expect(screen.getByTestId('render-count-calendar')).toHaveTextContent('1');
     expect(screen.getByTestId('render-count-postcard')).toHaveTextContent('0');
 
     fireEvent.click(screen.getByTestId('optimizations-toggle'));
     fireEvent.click(screen.getByTestId('reset-counts'));
     const unoptimizedTarget = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 11);
     const unoptimizedDate = `${unoptimizedTarget.getFullYear()}-${String(unoptimizedTarget.getMonth() + 1).padStart(2, '0')}-${String(unoptimizedTarget.getDate()).padStart(2, '0')}`;
-    drag(screen.getByTestId(`day-cell-${unoptimizedDate}`));
+    const unoptimizedCell = screen.getByTestId(`day-cell-${unoptimizedDate}`);
+    fireEvent.dragOver(unoptimizedCell);
+    fireEvent.dragOver(unoptimizedCell);
+    expect(screen.getByTestId('render-count-app')).toHaveTextContent('0');
+    expect(screen.getByTestId('render-count-calendar')).toHaveTextContent('0');
+    drag(unoptimizedCell);
 
+    expect(screen.getByTestId('render-count-app')).toHaveTextContent('1');
+    expect(screen.getByTestId('render-count-calendar')).toHaveTextContent('1');
     expect(screen.getByTestId('render-count-postcard')).toHaveTextContent('1');
     expect(store.getState().posts.posts.find((item) => item.id === 'p2').date).toBe(unoptimizedDate);
   });
