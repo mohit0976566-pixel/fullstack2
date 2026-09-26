@@ -1,4 +1,6 @@
 
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@600;700&display=swap');
+
 * {
     box-sizing: border-box;
     margin: 0;
@@ -6,76 +8,108 @@
 }
 
 body {
-    font-family: Arial, sans-serif;
-    background: #f4f6f8;
-    color: #222;
+    min-height: 100vh;
+    font-family: 'DM Sans', sans-serif;
+    background: radial-gradient(circle at 50% -10%, #28205d 0, #181a41 42%, #0f172e 100%);
+    color: #f5f5ff;
 }
 
 .container {
-    width: 90%;
-    max-width: 900px;
-    margin: 40px auto;
+    width: min(92%, 590px);
+    margin: 28px auto 70px;
 }
 
 h1 {
+    font-family: 'Space Grotesk', sans-serif;
     text-align: center;
     margin-bottom: 8px;
+    color: #955cff;
+    font-size: clamp(2rem, 5vw, 2.8rem);
 }
 
 .subtitle {
     text-align: center;
-    color: #666;
-    margin-bottom: 30px;
+    color: #9297b6;
+    margin-bottom: 38px;
+    font-size: 14px;
 }
 
 .form-card,
 .post-card {
-    background: white;
-    padding: 25px;
-    border-radius: 10px;
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+    background: rgba(31, 40, 66, 0.92);
+    border: 1px solid #2d3a5a;
+    padding: 28px;
+    border-radius: 12px;
+    box-shadow: 0 18px 45px rgba(4, 7, 25, 0.28);
 }
 
 .form-card {
-    margin-bottom: 30px;
+    margin-bottom: 64px;
 }
 
 h2 {
+    font-family: 'Space Grotesk', sans-serif;
     margin-bottom: 20px;
+    font-size: 18px;
 }
 
 .form-group {
-    margin-bottom: 18px;
+    margin-bottom: 22px;
 }
 
 label {
     display: block;
-    margin-bottom: 7px;
-    font-weight: bold;
+    margin-bottom: 9px;
+    color: #aeb4d0;
+    font-size: 13px;
+    font-weight: 600;
 }
 
-input,
+select,
 textarea {
     width: 100%;
     padding: 12px;
-    border: 1px solid #ccc;
+    border: 1px solid #3a496c;
     border-radius: 6px;
-    font-size: 15px;
+    background: #151e33;
+    color: #f5f5ff;
+    font: inherit;
+    font-size: 13px;
 }
 
 textarea {
-    min-height: 120px;
+    min-height: 105px;
     resize: vertical;
 }
 
+select:focus,
+textarea:focus {
+    outline: 2px solid #6b5cff;
+    outline-offset: 1px;
+}
+
+.word-count {
+    margin-top: 8px;
+    color: #8890af;
+    font-size: 12px;
+    text-align: right;
+}
+
+.over-limit {
+    color: #ff8eaa;
+}
+
 button {
-    padding: 11px 18px;
+    width: 100%;
+    padding: 10px 18px;
     border: none;
     border-radius: 6px;
-    background: #2563eb;
+    background: linear-gradient(90deg, #625cf0, #5141dc);
     color: white;
     cursor: pointer;
-    font-size: 15px;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 700;
 }
 
 button:hover {
@@ -85,13 +119,20 @@ button:hover {
 #message {
     margin-top: 15px;
     font-weight: bold;
+    font-size: 13px;
 }
 
 .posts-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 20px;
+    margin-bottom: 18px;
+}
+
+.posts-header button {
+    width: auto;
+    padding: 8px 12px;
+    font-size: 12px;
 }
 
 .post-card {
@@ -108,7 +149,7 @@ button:hover {
 }
 
 .post-author {
-    color: #666;
+    color: #9297b6;
     font-size: 14px;
     margin-bottom: 15px;
 }
@@ -130,7 +171,12 @@ button:hover {
 
     .container {
         width: 94%;
-        margin: 20px auto;
+        margin: 24px auto 50px;
+    }
+
+    .form-card,
+    .post-card {
+        padding: 22px;
     }
 
     .posts-header {

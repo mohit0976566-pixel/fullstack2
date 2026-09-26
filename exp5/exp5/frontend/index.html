@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Post Composer</title>
+    <title>OmniPost Composer</title>
 
     <link rel="stylesheet" href="style.css">
 </head>
@@ -13,46 +13,37 @@
 
     <div class="container">
 
-        <h1>Post Composer</h1>
-        <p class="subtitle">Create and manage your posts</p>
+        <h1>OmniPost Composer</h1>
+        <p class="subtitle">Write once, publish anywhere. Respects platform word limits.</p>
 
         <!-- Post Form -->
         <div class="form-card">
 
-            <h2>Create Post</h2>
+            <h2>Create New Post</h2>
 
             <form id="postForm">
 
                 <div class="form-group">
-                    <label for="title">Title</label>
-                    <input
-                        type="text"
-                        id="title"
-                        placeholder="Enter post title"
-                        required
-                    >
+                    <label for="platform">Select Platform</label>
+                    <select id="platform">
+                        <option value="Twitter" data-limit="50">Twitter (50 words)</option>
+                        <option value="LinkedIn" data-limit="130">LinkedIn (130 words)</option>
+                        <option value="Instagram" data-limit="150">Instagram (150 words)</option>
+                        <option value="Facebook" data-limit="250">Facebook (250 words)</option>
+                    </select>
                 </div>
 
                 <div class="form-group">
                     <label for="content">Content</label>
                     <textarea
                         id="content"
-                        placeholder="Write your post..."
+                        placeholder="What's on your mind?"
                         required
                     ></textarea>
+                    <div class="word-count">Words: <span id="wordCount">0</span> / <span id="wordLimit">50</span></div>
                 </div>
 
-                <div class="form-group">
-                    <label for="author">Author</label>
-                    <input
-                        type="text"
-                        id="author"
-                        placeholder="Enter author name"
-                        required
-                    >
-                </div>
-
-                <button type="submit">Create Post</button>
+                <button type="submit">Post</button>
 
             </form>
 
@@ -64,8 +55,8 @@
         <div class="posts-section">
 
             <div class="posts-header">
-                <h2>All Posts</h2>
-                <button id="refreshBtn">Refresh Posts</button>
+                <h2>Posts</h2>
+                <button id="refreshBtn" type="button">Refresh</button>
             </div>
 
             <div id="postsContainer">
@@ -76,7 +67,7 @@
 
     </div>
 
-    <script src="script.js"></script>
+    <script src="script.js?v=2"></script>
 
 </body>
 </html>

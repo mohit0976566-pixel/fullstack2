@@ -5,6 +5,26 @@ const postForm = document.getElementById("postForm");
 const postsContainer = document.getElementById("postsContainer");
 const message = document.getElementById("message");
 const refreshBtn = document.getElementById("refreshBtn");
+const platform = document.getElementById("platform");
+const contentInput = document.getElementById("content");
+const wordCount = document.getElementById("wordCount");
+const wordLimit = document.getElementById("wordLimit");
+
+function getWords(value) {
+    return value.trim() ? value.trim().split(/\s+/) : [];
+}
+
+function updateWordCount() {
+    const limit = Number(platform.selectedOptions[0].dataset.limit);
+    const count = getWords(contentInput.value).length;
+    wordCount.textContent = count;
+    wordLimit.textContent = limit;
+    wordCount.classList.toggle("over-limit", count > limit);
+}
+
+platform.addEventListener("change", updateWordCount);
+contentInput.addEventListener("input", updateWordCount);
+updateWordCount();
 
 
 // ===============================
@@ -98,14 +118,22 @@ postForm.addEventListener("submit", async function (event) {
 
     event.preventDefault();
 
+    const selectedPlatform = platform.value;
+    const content = contentInput.value.trim();
+    const limit = Number(platform.selectedOptions[0].dataset.limit);
+    const count = getWords(content).length;
+
+    if (content.length < 5 || count > limit) {
+        message.textContent = count > limit
+            ? `This post is over the ${limit}-word limit.`
+            : "Write at least 5 characters before posting.";
+        return;
+    }
+
     const postData = {
-
-        title: document.getElementById("title").value,
-
-        content: document.getElementById("content").value,
-
-        author: document.getElementById("author").value
-
+        title: `${selectedPlatform} post`,
+        content,
+        author: "OmniPost"
     };
 
     try {
@@ -125,14 +153,16 @@ postForm.addEventListener("submit", async function (event) {
         const result = await response.json();
 
         if (!response.ok) {
-
-            throw new Error(result.message || "Failed to create post");
-
+            const details = result.data && typeof result.data === "object"
+                ? Object.values(result.data).join(" ")
+                : "";
+            throw new Error(details || result.message || "Failed to create post");
         }
 
         message.textContent = "Post created successfully!";
 
         postForm.reset();
+        updateWordCount();
 
         loadPosts();
 
